@@ -19,9 +19,9 @@
 *	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
 ******************************************************************************************/
 #pragma once
-#include "ChiliWin.h"
-#include <d3d11.h>
-#include <wrl.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include "MainWindow.h"
 #include "ChiliException.h"
 #include "Colors.h"
 
@@ -40,15 +40,15 @@ public:
 		HRESULT hr;
 	};
 private:
-	// vertex format for the framebuffer fullscreen textured quad
-	struct FSQVertex
-	{
-		float x,y,z;		// position
-		float u,v;			// texcoords
-	};
+    // vertex format for the framebuffer fullscreen textured quad
+    struct Vertex
+    {
+        float x, y;		// position
+        float u, v;		// texcoords
+    };
 public:
-	Graphics( class HWNDKey& key );
-	Graphics( const Graphics& ) = delete;
+	Graphics(MainWindow& win);
+	Graphics(const Graphics&) = delete;
 	Graphics& operator=( const Graphics& ) = delete;
 	void EndFrame();
 	void BeginFrame();
@@ -59,20 +59,27 @@ public:
 	void PutPixel( int x,int y,Color c );
 	~Graphics();
 private:
-	Microsoft::WRL::ComPtr<IDXGISwapChain>				pSwapChain;
-	Microsoft::WRL::ComPtr<ID3D11Device>				pDevice;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext>			pImmediateContext;
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		pRenderTargetView;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>				pSysBufferTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	pSysBufferTextureView;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader>			pPixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader>			pVertexShader;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>				pVertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout>			pInputLayout;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState>			pSamplerState;
-	D3D11_MAPPED_SUBRESOURCE							mappedSysBufferTexture;
-	Color*                                              pSysBuffer = nullptr;
+    MainWindow& win;
+	Color* pSysBuffer = nullptr;
+    unsigned int shader_program = 0;
+    static constexpr float vertices[] =
+    {
+        // vertices       // texcoords, use top-left as 0,0 instead of bottom left
+        -1.0f, 1.0f,      0.0f, 0.0f,
+        -1.0f,-1.0f,      0.0f, 1.0f,
+        1.0f,  1.0f,      1.0f, 0.0f,
+        1.0f, -1.0f,      1.0f, 1.0f,
+    };
+    static constexpr unsigned int indices[] = {
+        0, 1, 2,
+        1, 2, 3
+    };
+    unsigned int CompileShaders();
+    unsigned int VAO;
+    unsigned int VBO;
+    unsigned int EBO;
+    unsigned int texture;
 public:
-	static constexpr int ScreenWidth = 800;
-	static constexpr int ScreenHeight = 600;
+	static constexpr unsigned int ScreenWidth = 800u;
+	static constexpr unsigned int ScreenHeight = 600u;
 };

@@ -21,12 +21,14 @@
 #include "MainWindow.h"
 #include "Game.h"
 #include "ChiliException.h"
-
-int WINAPI wWinMain( HINSTANCE hInst,HINSTANCE,LPWSTR pArgs,INT )
+#include <iostream>
+int main(int, char**)
 {
+    std::cout << "Let's go boi!\n";
+    auto* win = glfwCreateWindow(800, 600, "Pubes", nullptr, nullptr);
 	try
 	{
-		MainWindow wnd( hInst,pArgs );		
+        MainWindow wnd{};
 		try
 		{
 			Game theGame( wnd );

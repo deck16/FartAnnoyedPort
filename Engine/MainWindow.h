@@ -19,27 +19,15 @@
 *	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
 ******************************************************************************************/
 #pragma once
-#include "ChiliWin.h"
-#include "Graphics.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "ChiliException.h"
 #include <string>
+#include <memory>
 
-// for granting special access to hWnd only for Graphics constructor
-class HWNDKey
-{
-	friend Graphics::Graphics( HWNDKey& );
-public:
-	HWNDKey( const HWNDKey& ) = delete;
-	HWNDKey& operator=( HWNDKey& ) = delete;
-protected:
-	HWNDKey() = default;
-protected:
-	HWND hWnd = nullptr;
-};
-
-class MainWindow : public HWNDKey
+class MainWindow
 {
 public:
 	class Exception : public ChiliException
@@ -50,7 +38,7 @@ public:
 		virtual std::wstring GetExceptionType() const override { return L"Windows Exception"; }
 	};
 public:
-	MainWindow( HINSTANCE hInst,wchar_t* pArgs );
+	MainWindow();
 	MainWindow( const MainWindow& ) = delete;
 	MainWindow& operator=( const MainWindow& ) = delete;
 	~MainWindow();
@@ -59,23 +47,26 @@ public:
 	void ShowMessageBox( const std::wstring& title,const std::wstring& message,UINT type = MB_OK ) const;
 	void Kill()
 	{
-		PostQuitMessage( 0 );
+		glfwSetWindowShouldClose(window.get(), GLFW_TRUE);
 	}
 	// returns false if quitting
 	bool ProcessMessage();
-	const std::wstring& GetArgs() const
-	{
-		return args;
-	}
-private:
-	static LRESULT WINAPI _HandleMsgSetup( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
-	static LRESULT WINAPI _HandleMsgThunk( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
-	LRESULT HandleMsg( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
+    void SwapBuffers();
+//private:
+//	static LRESULT WINAPI _HandleMsgSetup( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
+//	static LRESULT WINAPI _HandleMsgThunk( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
+//	LRESULT HandleMsg( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam );
 public:
 	Keyboard kbd;
 	Mouse mouse;
 private:
-	static constexpr wchar_t* wndClassName = L"Chili DirectX Framework Window";
-	HINSTANCE hInst = nullptr;
-	std::wstring args;
+    struct glfw_window_destroyer
+    {
+        void operator()(GLFWwindow* window)
+        {
+            glfwDestroyWindow(window);
+        }
+    };
+    using window_ptr = std::unique_ptr<GLFWwindow, glfw_window_destroyer>;
+    window_ptr window;
 };
