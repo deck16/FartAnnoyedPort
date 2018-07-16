@@ -38,14 +38,14 @@ public:
 		};
 	private:
 		Type type;
-		unsigned char code;
+		int code;
 	public:
 		Event()
 			:
 			type( Type::Invalid ),
 			code( 0u )
 		{}
-		Event( Type type,unsigned char code )
+		Event( Type type,int code )
 			:
 			type( type ),
 			code( code )
@@ -62,7 +62,7 @@ public:
 		{
 			return type != Type::Invalid;
 		}
-		unsigned char GetCode() const
+		int GetCode() const
 		{
 			return code;
 		}
@@ -71,7 +71,7 @@ public:
 	Keyboard() = default;
 	Keyboard( const Keyboard& ) = delete;
 	Keyboard& operator=( const Keyboard& ) = delete;
-	bool KeyIsPressed( unsigned char keycode ) const;
+	bool KeyIsPressed( int keycode ) const;
 	Event ReadKey();
 	bool KeyIsEmpty() const;
 	char ReadChar();
@@ -95,5 +95,5 @@ private:
 	bool autorepeatEnabled = false;
 	std::bitset<nKeys> keystates;
 	std::queue<Event> keybuffer;
-	std::queue<char> charbuffer;
+	std::queue<std::uint32_t> charbuffer;
 };

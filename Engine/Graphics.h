@@ -62,13 +62,13 @@ private:
     MainWindow& win;
 	Color* pSysBuffer = nullptr;
     unsigned int shader_program = 0;
-    static constexpr float vertices[] =
+    static constexpr Vertex vertices[] =
     {
         // vertices       // texcoords, use top-left as 0,0 instead of bottom left
-        -1.0f, 1.0f,      0.0f, 0.0f,
-        -1.0f,-1.0f,      0.0f, 1.0f,
-        1.0f,  1.0f,      1.0f, 0.0f,
-        1.0f, -1.0f,      1.0f, 1.0f,
+        {-1.0f, 1.0f,      0.0f, 0.0f},
+        {-1.0f,-1.0f,      0.0f, 1.0f},
+        {1.0f,  1.0f,      1.0f, 0.0f},
+        {1.0f, -1.0f,      1.0f, 1.0f}
     };
     static constexpr unsigned int indices[] = {
         0, 1, 2,

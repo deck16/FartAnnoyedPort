@@ -20,7 +20,7 @@
  ******************************************************************************************/
 #include "Keyboard.h"
 
-bool Keyboard::KeyIsPressed( unsigned char keycode ) const
+bool Keyboard::KeyIsPressed( int keycode ) const
 {
 	return keystates[keycode];
 }
@@ -48,7 +48,7 @@ char Keyboard::ReadChar()
 {
 	if( charbuffer.size() > 0u )
 	{
-		unsigned char charcode = charbuffer.front();
+	    std::uint32_t charcode = charbuffer.front();
 		charbuffer.pop();
 		return charcode;
 	}
@@ -70,7 +70,7 @@ void Keyboard::FlushKey()
 
 void Keyboard::FlushChar()
 {
-	charbuffer = std::queue<char>();
+	charbuffer = std::queue<std::uint32_t>();
 }
 
 void Keyboard::Flush()

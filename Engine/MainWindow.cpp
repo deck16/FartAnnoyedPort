@@ -35,11 +35,119 @@ MainWindow::MainWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     window = window_ptr{ glfwCreateWindow(Graphics::ScreenWidth, Graphics::ScreenHeight, "Chili Framework", nullptr, nullptr) };
+    glfwSetWindowUserPointer(window.get(), this); // used for GLFWwindow* to MainWindow* lookback in callbacks
     glfwMakeContextCurrent(window.get());
     glfwSetKeyCallback(window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods)
     {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) // TODO: maybe temporary
             glfwSetWindowShouldClose(window, GL_TRUE);
+
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        if (action == GLFW_PRESS)
+        {
+            mw->kbd.OnKeyPressed(key);
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            mw->kbd.OnKeyReleased(key);
+        }
+        else if (action == GLFW_REPEAT)
+        {
+            if (mw->kbd.AutorepeatIsEnabled())
+                mw->kbd.OnKeyPressed(key);
+        }
+        // else don't handle GLFW_KEY_UNKNOWN 
+    });
+    glfwSetWindowFocusCallback(window.get(), [](GLFWwindow* window, int focused)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        if (!focused)
+        {
+            // The window lost input focus
+            mw->kbd.ClearState();
+        }
+    });
+    glfwSetCharCallback(window.get(), [](GLFWwindow* window, std::uint32_t codepoint)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        mw->kbd.OnChar(codepoint);
+    });
+    glfwSetCursorPosCallback(window.get(), [](GLFWwindow* window, double xpos, double ypos)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        mw->mouse.OnMouseMove((int)xpos, (int)ypos);
+        std::cout << xpos << ":" << ypos << '\n'; // TODO: remove
+    });
+    glfwSetCursorEnterCallback(window.get(), [](GLFWwindow* window, int entered)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        if (entered)
+        {
+            mw->mouse.OnMouseEnter();
+        }
+        else
+        {
+            // The cursor left the client area of the window
+            auto left_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+            auto right_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+            short xposi = (short)xpos, yposi = (short)ypos;
+            if (left_state == GLFW_PRESS || right_state == GLFW_PRESS)
+            {                
+                xposi = std::clamp((unsigned int)xposi, 0u, Graphics::ScreenWidth - 1);
+                yposi = std::clamp((unsigned int)yposi, 0u, Graphics::ScreenHeight - 1);
+                mw->mouse.OnMouseMove(xposi, yposi);
+            }
+            else
+            {
+                mw->mouse.OnMouseLeave();
+                mw->mouse.OnLeftReleased(xposi, yposi);
+                mw->mouse.OnRightReleased(xposi, yposi);
+            }
+        }
+    });
+    glfwSetMouseButtonCallback(window.get(), [](GLFWwindow* window, int button, int action, int mods)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        if (action == GLFW_PRESS)
+        {
+            if (button == GLFW_MOUSE_BUTTON_LEFT)
+            {
+                mw->mouse.OnLeftPressed((int)xpos, (int)ypos);
+            }
+            else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+            {
+                mw->mouse.OnRightPressed((int)xpos, (int)ypos);
+            }
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            if (button == GLFW_MOUSE_BUTTON_LEFT)
+            {
+                mw->mouse.OnLeftReleased((int)xpos, (int)ypos);
+            }
+            else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+            {
+                mw->mouse.OnRightReleased((int)xpos, (int)ypos);
+            }
+        }
+    });
+    glfwSetScrollCallback(window.get(), [](GLFWwindow* window, double xoffset, double yoffset)
+    {
+        MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        if (yoffset > 0.f) // TODO: check directions
+        {
+            mw->mouse.OnWheelDown((int)xpos, (int)ypos);
+        }
+        else if (yoffset < 0.f)
+        {
+            mw->mouse.OnWheelUp((int)xpos, (int)ypos);
+        }
     });
 }
 
@@ -50,14 +158,12 @@ MainWindow::~MainWindow()
 
 bool MainWindow::IsActive() const
 {
-	// TODO: implement, consider removing
-    return true;
+    return glfwGetWindowAttrib(window.get(), GLFW_FOCUSED);
 }
 
 bool MainWindow::IsMinimized() const
 {
-    // TODO: implement, consider removing
-    return false;
+    return glfwGetWindowAttrib(window.get(), GLFW_ICONIFIED);
 }
 
 void MainWindow::ShowMessageBox( const std::wstring& title,const std::wstring& message,UINT type ) const
@@ -74,135 +180,3 @@ void MainWindow::SwapBuffers()
 {
     glfwSwapBuffers(window.get());
 }
-//
-//LRESULT WINAPI MainWindow::_HandleMsgSetup( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam )
-//{
-//	// use create parameter passed in from CreateWindow() to store window class pointer at WinAPI side
-//	if( msg == WM_NCCREATE )
-//	{
-//		// extract ptr to window class from creation data
-//		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>( lParam );
-//		MainWindow* const pWnd = reinterpret_cast<MainWindow*>( pCreate->lpCreateParams );
-//		// sanity check
-//		assert( pWnd != nullptr );
-//		// set WinAPI-managed user data to store ptr to window class
-//		SetWindowLongPtr( hWnd,GWLP_USERDATA,reinterpret_cast<LONG_PTR>( pWnd ) );
-//		// set message proc to normal (non-setup) handler now that setup is finished
-//		SetWindowLongPtr( hWnd,GWLP_WNDPROC,reinterpret_cast<LONG_PTR>( &MainWindow::_HandleMsgThunk ) );
-//		// forward message to window class handler
-//		return pWnd->HandleMsg( hWnd,msg,wParam,lParam );
-//	}
-//	// if we get a message before the WM_NCCREATE message, handle with default handler
-//	return DefWindowProc( hWnd,msg,wParam,lParam );
-//}
-//
-//LRESULT WINAPI MainWindow::_HandleMsgThunk( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam )
-//{
-//	// retrieve ptr to window class
-//	MainWindow* const pWnd = reinterpret_cast<MainWindow*>( GetWindowLongPtr( hWnd,GWLP_USERDATA ) );
-//	// forward message to window class handler
-//	return pWnd->HandleMsg( hWnd,msg,wParam,lParam );
-//}
-//
-//LRESULT MainWindow::HandleMsg( HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam )
-//{
-//	switch( msg )
-//	{
-//	case WM_DESTROY:
-//		PostQuitMessage( 0 );
-//		break;
-//	case WM_KILLFOCUS:
-//		kbd.ClearState();
-//		break;
-//
-//		// ************ KEYBOARD MESSAGES ************ //
-//	case WM_KEYDOWN:
-//		if( !(lParam & 0x40000000) || kbd.AutorepeatIsEnabled() ) // no thank you on the autorepeat
-//		{
-//			kbd.OnKeyPressed( static_cast<unsigned char>(wParam) );
-//		}
-//		break;
-//	case WM_KEYUP:
-//		kbd.OnKeyReleased( static_cast<unsigned char>(wParam) );
-//		break;
-//	case WM_CHAR:
-//		kbd.OnChar( static_cast<unsigned char>(wParam) );
-//		break;
-//		// ************ END KEYBOARD MESSAGES ************ //
-//
-//		// ************ MOUSE MESSAGES ************ //
-//	case WM_MOUSEMOVE:
-//	{
-//		POINTS pt = MAKEPOINTS( lParam );
-//		if( pt.x > 0 && pt.x < Graphics::ScreenWidth && pt.y > 0 && pt.y < Graphics::ScreenHeight )
-//		{
-//			mouse.OnMouseMove( pt.x,pt.y );
-//			if( !mouse.IsInWindow() )
-//			{
-//				SetCapture( hWnd );
-//				mouse.OnMouseEnter();
-//			}
-//		}
-//		else
-//		{
-//			if( wParam & (MK_LBUTTON | MK_RBUTTON) )
-//			{
-//				pt.x = std::max( short( 0 ),pt.x );
-//				pt.x = std::min( short( Graphics::ScreenWidth - 1 ),pt.x );
-//				pt.y = std::max( short( 0 ),pt.y );
-//				pt.y = std::min( short( Graphics::ScreenHeight - 1 ),pt.y );
-//				mouse.OnMouseMove( pt.x,pt.y );
-//			}
-//			else
-//			{
-//				ReleaseCapture();
-//				mouse.OnMouseLeave();
-//				mouse.OnLeftReleased( pt.x,pt.y );
-//				mouse.OnRightReleased( pt.x,pt.y );
-//			}
-//		}
-//		break;
-//	}
-//	case WM_LBUTTONDOWN:
-//	{
-//		const POINTS pt = MAKEPOINTS( lParam );
-//		mouse.OnLeftPressed( pt.x,pt.y );
-//		SetForegroundWindow( hWnd );
-//		break;
-//	}
-//	case WM_RBUTTONDOWN:
-//	{
-//		const POINTS pt = MAKEPOINTS( lParam );
-//		mouse.OnRightPressed( pt.x,pt.y );
-//		break;
-//	}
-//	case WM_LBUTTONUP:
-//	{
-//		const POINTS pt = MAKEPOINTS( lParam );
-//		mouse.OnLeftReleased( pt.x,pt.y );
-//		break;
-//	}
-//	case WM_RBUTTONUP:
-//	{
-//		const POINTS pt = MAKEPOINTS( lParam );
-//		mouse.OnRightReleased( pt.x,pt.y );
-//		break;
-//	}
-//	case WM_MOUSEWHEEL:
-//	{
-//		const POINTS pt = MAKEPOINTS( lParam );
-//		if( GET_WHEEL_DELTA_WPARAM( wParam ) > 0 )
-//		{
-//			mouse.OnWheelUp( pt.x,pt.y );
-//		}
-//		else if( GET_WHEEL_DELTA_WPARAM( wParam ) < 0 )
-//		{
-//			mouse.OnWheelDown( pt.x,pt.y );
-//		}
-//		break;
-//	}
-//	// ************ END MOUSE MESSAGES ************ //
-//	}
-//
-//	return DefWindowProc( hWnd,msg,wParam,lParam );
-//}
