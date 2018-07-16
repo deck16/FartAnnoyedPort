@@ -94,21 +94,21 @@ bool Keyboard::AutorepeatIsEnabled() const
 	return autorepeatEnabled;
 }
 
-void Keyboard::OnKeyPressed( unsigned char keycode )
+void Keyboard::OnKeyPressed( int keycode )
 {
 	keystates[ keycode ] = true;	
 	keybuffer.push( Keyboard::Event( Keyboard::Event::Type::Press,keycode ) );
 	TrimBuffer( keybuffer );
 }
 
-void Keyboard::OnKeyReleased( unsigned char keycode )
+void Keyboard::OnKeyReleased( int keycode )
 {
 	keystates[ keycode ] = false;
 	keybuffer.push( Keyboard::Event( Keyboard::Event::Type::Release,keycode ) );
 	TrimBuffer( keybuffer );
 }
 
-void Keyboard::OnChar( char character )
+void Keyboard::OnChar( std::uint32_t character )
 {
 	charbuffer.push( character );
 	TrimBuffer( charbuffer );

@@ -19,6 +19,7 @@
  *	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
  ******************************************************************************************/
 #pragma once
+#include <GLFW/glfw3.h>
 #include <queue>
 #include <bitset>
 
@@ -82,14 +83,14 @@ public:
 	void DisableAutorepeat();
 	bool AutorepeatIsEnabled() const;
 private:
-	void OnKeyPressed( unsigned char keycode );
-	void OnKeyReleased( unsigned char keycode );
-	void OnChar( char character );
+	void OnKeyPressed( int keycode );
+	void OnKeyReleased( int keycode );
+	void OnChar( std::uint32_t character );
 	void ClearState();
 	template<typename T>
 	void TrimBuffer( std::queue<T>& buffer );
 private:
-	static constexpr unsigned int nKeys = 256u;
+	static constexpr unsigned int nKeys = GLFW_KEY_LAST;
 	static constexpr unsigned int bufferSize = 4u;
 	bool autorepeatEnabled = false;
 	std::bitset<nKeys> keystates;
