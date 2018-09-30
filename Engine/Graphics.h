@@ -52,7 +52,7 @@ public:
 	void BeginFrame();
 	void PutPixel( int x,int y,int r,int g,int b )
 	{
-		PutPixel( x,y, Color{ unsigned char( r ),unsigned char( g ),unsigned char( b ) } );
+		PutPixel( x,y, Color( unsigned char( r ),unsigned char( g ),unsigned char( b ) ) );
 	}
 	void PutPixel( int x,int y,Color c );
 	~Graphics();
