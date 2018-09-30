@@ -76,7 +76,7 @@ MainWindow::MainWindow()
     {
         MainWindow* mw = reinterpret_cast<MainWindow*>(glfwGetWindowUserPointer(window));
         mw->mouse.OnMouseMove((int)xpos, (int)ypos);
-        std::cout << xpos << ":" << ypos << '\n'; // TODO: remove
+        // std::cout << xpos << ":" << ypos << '\n'; // TODO: remove
     });
     glfwSetCursorEnterCallback(window.get(), [](GLFWwindow* window, int entered)
     {

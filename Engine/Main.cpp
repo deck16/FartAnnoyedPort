@@ -30,7 +30,6 @@ int main(int, char**)
 #if defined (WIN32) && !defined(DEBUG) // hide console on windows
     FreeConsole();
 #endif
-    std::cout << "Let's go boi!\n";
     auto* win = glfwCreateWindow(800, 600, "Pubes", nullptr, nullptr);
 	try
 	{
