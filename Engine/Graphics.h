@@ -31,13 +31,11 @@ public:
 	class Exception : public ChiliException
 	{
 	public:
-		Exception( HRESULT hr,const std::wstring& note,const wchar_t* file,unsigned int line );
+		Exception( const std::wstring& note,const wchar_t* file,unsigned int line );
 		std::wstring GetErrorName() const;
 		std::wstring GetErrorDescription() const;
 		virtual std::wstring GetFullMessage() const override;
 		virtual std::wstring GetExceptionType() const override;
-	private:
-		HRESULT hr;
 	};
 private:
     // vertex format for the framebuffer fullscreen textured quad
@@ -54,7 +52,7 @@ public:
 	void BeginFrame();
 	void PutPixel( int x,int y,int r,int g,int b )
 	{
-		PutPixel( x,y,{ unsigned char( r ),unsigned char( g ),unsigned char( b ) } );
+		PutPixel( x,y, Color{ unsigned char( r ),unsigned char( g ),unsigned char( b ) } );
 	}
 	void PutPixel( int x,int y,Color c );
 	~Graphics();

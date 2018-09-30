@@ -24,7 +24,7 @@
 #include <string>
 #include <array>
 
-#define CHILI_GFX_EXCEPTION( hr,note ) Graphics::Exception( hr,note,_CRT_WIDE(__FILE__),__LINE__ )
+#define CHILI_GFX_EXCEPTION( note ) Graphics::Exception( note,_CRT_WIDE(__FILE__),__LINE__ )
 
 Graphics::Graphics(MainWindow& win)
     :
@@ -32,7 +32,7 @@ Graphics::Graphics(MainWindow& win)
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        throw CHILI_GFX_EXCEPTION(420, L"GladGLLoader failed");
+        throw CHILI_GFX_EXCEPTION(L"GladGLLoader failed");
     }
     
     // allocate memory for sysbuffer (16-byte aligned for faster access)
@@ -139,7 +139,7 @@ void main()
     if (!success)
     {
         glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(420, L"ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
+        CHILI_GFX_EXCEPTION(L"ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
     }
 
     unsigned int fragment_shader;
@@ -150,7 +150,7 @@ void main()
     if (!success)
     {
         glGetShaderInfoLog(fragment_shader, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(420, L"ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
+        CHILI_GFX_EXCEPTION(L"ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
     }
 
     unsigned int shader_program = glCreateProgram();
@@ -161,7 +161,7 @@ void main()
     if (!success)
     {
         glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(420, L"ERROR::PROGRAM::LINK_FAILED\n");
+        CHILI_GFX_EXCEPTION(L"ERROR::PROGRAM::LINK_FAILED\n");
     }
 
     glDeleteShader(vertex_shader);
@@ -172,10 +172,9 @@ void main()
 
 //////////////////////////////////////////////////
 //           Graphics Exception
-Graphics::Exception::Exception( HRESULT hr,const std::wstring& note,const wchar_t* file,unsigned int line )
+Graphics::Exception::Exception( const std::wstring& note,const wchar_t* file,unsigned int line )
 	:
-	ChiliException( file,line,note ),
-	hr( hr )
+	ChiliException( file,line,note )
 {}
 
 std::wstring Graphics::Exception::GetFullMessage() const

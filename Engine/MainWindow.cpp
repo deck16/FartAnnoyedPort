@@ -166,9 +166,9 @@ bool MainWindow::IsMinimized() const
     return glfwGetWindowAttrib(window.get(), GLFW_ICONIFIED);
 }
 
-void MainWindow::ShowMessageBox( const std::wstring& title,const std::wstring& message,UINT type ) const
+void MainWindow::ShowMessageBox( const std::wstring& title,const std::wstring& message ) const
 {
-	std::cout << message.c_str() << title.c_str() << type;
+	std::cout << title.c_str() << ": " << message.c_str();
 }
 
 bool MainWindow::ProcessMessage()
