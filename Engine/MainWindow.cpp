@@ -24,6 +24,7 @@
 #include "Game.h"
 #include <assert.h>
 #include <iostream>
+#include <algorithm>
 
 MainWindow::MainWindow()
     :
