@@ -6,8 +6,7 @@ set(SOURCES
 "MainWindow.cpp"
 "Main.cpp"
 "Keyboard.cpp"
-"Graphics.cpp"
-"Resource.rc")
+"Graphics.cpp")
 
 set(HEADERS
 "ChiliException.h"
@@ -17,8 +16,7 @@ set(HEADERS
 "Graphics.h"
 "Keyboard.h"
 "MainWindow.h"
-"Mouse.h"
-"Resource.h")
+"Mouse.h")
 
 set(CMAKE_CXX_STANDARD 17)
 add_executable(Engine ${SOURCES} ${HEADERS})
