@@ -23,8 +23,24 @@
 #include <assert.h>
 #include <string>
 #include <array>
+#include <cstring>
+
+#undef _CRT_WIDE_
+#undef _CRT_WIDE
+#define _CRT_WIDE_(s) L ## s
+#define _CRT_WIDE(s) _CRT_WIDE_(s)
 
 #define CHILI_GFX_EXCEPTION( note ) Graphics::Exception( note,_CRT_WIDE(__FILE__),__LINE__ )
+
+using aligned_malloc_type = void*(*)(std::size_t, std::size_t);
+using aligned_free_type = void(*)(void*);
+#ifdef WIN32
+    aligned_malloc_type aligned_malloc_independent = _aligned_malloc;
+    aligned_free_type aligned_free_independent = _aligned_free;
+#else
+    aligned_malloc_type aligned_malloc_independent = aligned_alloc;
+    aligned_free_type aligned_free_independent = free;
+#endif
 
 Graphics::Graphics(MainWindow& win)
     :
@@ -37,7 +53,7 @@ Graphics::Graphics(MainWindow& win)
     
     // allocate memory for sysbuffer (16-byte aligned for faster access)
     pSysBuffer = reinterpret_cast<Color*>(
-        _aligned_malloc(sizeof(Color) * Graphics::ScreenWidth * Graphics::ScreenHeight, 16u));
+        aligned_malloc_independent(sizeof(Color) * Graphics::ScreenWidth * Graphics::ScreenHeight, 16u));
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -72,7 +88,7 @@ Graphics::~Graphics()
 	// free sysbuffer memory (aligned free)
 	if( pSysBuffer )
 	{
-		_aligned_free( pSysBuffer );
+		aligned_free_independent( pSysBuffer );
 		pSysBuffer = nullptr;
 	}
 }
@@ -92,7 +108,7 @@ void Graphics::BeginFrame()
     // TODO: temporary
     //glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
     //glClear(GL_COLOR_BUFFER_BIT);
-	memset( pSysBuffer,155u,sizeof( Color ) * Graphics::ScreenHeight * Graphics::ScreenWidth );
+	std::memset( pSysBuffer,155u,sizeof( Color ) * Graphics::ScreenHeight * Graphics::ScreenWidth );
 }
 
 void Graphics::PutPixel( int x,int y,Color c )
@@ -106,7 +122,7 @@ void Graphics::PutPixel( int x,int y,Color c )
 
 unsigned int Graphics::CompileShaders()
 {
-    static constexpr char* vertex_shader_src = R"shader(#version 330 core
+    static constexpr const char* vertex_shader_src = R"shader(#version 330 core
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in vec2 aTexCoord;
 
@@ -117,7 +133,7 @@ void main()
     gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
     TexCoord = aTexCoord;
 })shader";
-    static constexpr char* fragment_shader_src = R"shader(#version 330 core
+    static constexpr const char* fragment_shader_src = R"shader(#version 330 core
 in vec2 TexCoord;
 
 out vec4 FragColor;
