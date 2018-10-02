@@ -32,7 +32,7 @@ MainWindow::MainWindow()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     window = window_ptr{ glfwCreateWindow(Graphics::ScreenWidth, Graphics::ScreenHeight, "Chili Framework", nullptr, nullptr) };
     glfwSetWindowUserPointer(window.get(), this); // used for GLFWwindow* to MainWindow* lookback in callbacks
