@@ -24,6 +24,7 @@
 #include <string>
 #include <array>
 #include <cstring>
+#include <iostream>
 
 #undef _CRT_WIDE_
 #undef _CRT_WIDE
@@ -34,12 +35,12 @@
 
 using aligned_malloc_type = void*(*)(std::size_t, std::size_t);
 using aligned_free_type = void(*)(void*);
-#ifdef WIN32
-    aligned_malloc_type aligned_malloc_independent = _aligned_malloc;
-    aligned_free_type aligned_free_independent = _aligned_free;
+#ifdef _MSC_VER
+    constexpr aligned_malloc_type aligned_malloc_independent = &_aligned_malloc;
+    constexpr aligned_free_type aligned_free_independent = &_aligned_free;
 #else
-    aligned_malloc_type aligned_malloc_independent = aligned_alloc;
-    aligned_free_type aligned_free_independent = free;
+    constexpr aligned_malloc_type aligned_malloc_independent = &aligned_alloc;
+    constexpr aligned_free_type aligned_free_independent = &free;
 #endif
 
 Graphics::Graphics(MainWindow& win)
@@ -56,31 +57,87 @@ Graphics::Graphics(MainWindow& win)
         aligned_malloc_independent(sizeof(Color) * Graphics::ScreenWidth * Graphics::ScreenHeight, 16u));
 
     glGenVertexArrays(1, &VAO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glGenVertexArrays failed");
+    }
     glBindVertexArray(VAO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBindVertexArray failed");
+    }
 
     glGenBuffers(1, &VBO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glGenBuffers failed");
+    }
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBindBuffer failed");
+    }
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBufferData failed");
+    }
 
     glGenBuffers(1, &EBO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glGenBuffers failed");
+    }
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBindBuffer failed");
+    }
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBufferData failed");
+    }
 
     glGenTextures(1, &texture);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glGenTextures failed");
+    }
     glBindTexture(GL_TEXTURE_2D, texture);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glBindTexture failed");
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pSysBuffer);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glTexImage2D failed");
+    }
 
     shader_program = CompileShaders();
     glUseProgram(shader_program);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glUseProgram failed");
+    }
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr); // position
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float))); // texcoords
     glEnableVertexAttribArray(0);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glEnableVertexAttribArray failed");
+    }
     glEnableVertexAttribArray(1);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glEnableVertexAttribArray failed");
+    }
 }
 
 Graphics::~Graphics()
@@ -95,9 +152,7 @@ Graphics::~Graphics()
 
 void Graphics::EndFrame()
 {
-    //glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pSysBuffer);
-    //glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     win.SwapBuffers();
 }
@@ -147,41 +202,92 @@ void main()
 
     unsigned int vertex_shader;
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glCreateShader of vertex shader failed");
+    }
     glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glShaderSource of vertex shader failed");
+    }
     glCompileShader(vertex_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glCompileShader of vertex shader failed");
+    }
     int  success;
     char infoLog[512];
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(L"ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
+        std::cerr << infoLog;
+        throw CHILI_GFX_EXCEPTION(L"ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
     }
 
     unsigned int fragment_shader;
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glCreateShader of fragment shader failed");
+    }
     glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glShaderSource of fragment shader failed");
+    }
     glCompileShader(fragment_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glCompileShader of fragment shader failed");
+    }
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(fragment_shader, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(L"ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
+        std::cerr << infoLog;
+        throw CHILI_GFX_EXCEPTION(L"ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
     }
 
     unsigned int shader_program = glCreateProgram();
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glCreateProgram failed");
+    }
     glAttachShader(shader_program, vertex_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glAttachShader of vertex shader failed");
+    }
     glAttachShader(shader_program, fragment_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glAttachShader of fragment shader failed");
+    }
     glLinkProgram(shader_program);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glLinkProgram failed");
+    }
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
     if (!success)
     {
         glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-        CHILI_GFX_EXCEPTION(L"ERROR::PROGRAM::LINK_FAILED\n");
+        std::cerr << infoLog;
+        throw CHILI_GFX_EXCEPTION(L"ERROR::PROGRAM::LINK_FAILED\n");
     }
 
     glDeleteShader(vertex_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glDeleteShader of vertex shader failed");
+    }
     glDeleteShader(fragment_shader);
+    if (glGetError() != GL_NO_ERROR)
+    {
+        throw CHILI_GFX_EXCEPTION(L"glDeleteShader of fragment shader failed");
+    }
 
     return shader_program;
 }
