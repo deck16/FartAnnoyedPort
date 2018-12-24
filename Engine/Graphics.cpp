@@ -36,8 +36,8 @@
 using aligned_malloc_type = void*(*)(std::size_t, std::size_t);
 using aligned_free_type = void(*)(void*);
 #ifdef _MSC_VER
-    constexpr aligned_malloc_type aligned_malloc_independent = &_aligned_malloc;
-    constexpr aligned_free_type aligned_free_independent = &_aligned_free;
+    constexpr aligned_malloc_type aligned_malloc_independent = _aligned_malloc;
+    constexpr aligned_free_type aligned_free_independent = _aligned_free;
 #else
     constexpr aligned_malloc_type aligned_malloc_independent = &aligned_alloc;
     constexpr aligned_free_type aligned_free_independent = &free;
