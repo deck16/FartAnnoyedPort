@@ -11,9 +11,9 @@ C:\Users\Kappa>git clone --recurse-submodules https://github.com/FinalL/chili_fr
 * The last thing remaining is to set the `Engine` project as StartUp project. You can do that by right-clicking the `Engine` project, and choosing the `⚙️ Set as StartUp project` option.
 
 ## Linux
-* It's quite simple process, you'll need `cmake`, `git` and a compiler of choice, but we'll stick with `build-essentials` pack, since that makes building the cmake project trivial. On Debian derivative distributions of GNU/Linux, we'll also need to install glfw dependency `xorg-dev`.
+* It's quite simple process, you'll need `cmake`, `git` and a compiler of choice, but we'll stick with `build-essential` pack, since that makes building the cmake project trivial. On Debian derivative distributions of GNU/Linux, we'll also need to install glfw dependency `xorg-dev`.
 ```
-user@machine:~$ sudo apt-get install cmake git build-essentials xorg-dev
+user@machine:~$ sudo apt -f install cmake git build-essential xorg-dev
 ```
 * Clone the repository, **don't forget to download the submodules too with the extra parameter**:
 ```
