@@ -151,19 +151,15 @@ Graphics::~Graphics()
 }
 
 void Graphics::EndFrame()
-{
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pSysBuffer);
+{    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, pSysBuffer);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     win.SwapBuffers();
 }
 
 void Graphics::BeginFrame()
 {
-	// clear the sysbuffer
-    // TODO: temporary
-    //glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT);
-	std::memset( pSysBuffer,155u,sizeof( Color ) * Graphics::ScreenHeight * Graphics::ScreenWidth );
+	std::memset( pSysBuffer,0u,sizeof( Color ) * Graphics::ScreenHeight * Graphics::ScreenWidth );
 }
 
 void Graphics::PutPixel( int x,int y,Color c )
