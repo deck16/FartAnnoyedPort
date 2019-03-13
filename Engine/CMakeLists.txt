@@ -6,7 +6,16 @@ set(SOURCES
 "MainWindow.cpp"
 "Main.cpp"
 "Keyboard.cpp"
-"Graphics.cpp")
+"Graphics.cpp"
+"Ball.cpp"
+"Brick.cpp"
+"FrameTimer.cpp"
+"Paddle.cpp"
+"RectF.cpp"
+"SpriteCodex.cpp"
+"Vec2.cpp"
+"Walls.cpp"
+"Beveler.cpp")
 
 set(HEADERS
 "ChiliException.h"
@@ -16,7 +25,17 @@ set(HEADERS
 "Graphics.h"
 "Keyboard.h"
 "MainWindow.h"
-"Mouse.h")
+"Mouse.h"
+"Ball.h"
+"Brick.h"
+"FrameTimer.h"
+"Paddle.h"
+"RectF.h"
+"SpriteCodex.h"
+"Vec2.h"
+"Walls.h"
+"Beveler.h"
+"LifeCounter.h")
 
 set(CMAKE_CXX_STANDARD 17)
 add_executable(Engine ${SOURCES} ${HEADERS})
